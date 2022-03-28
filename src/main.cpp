@@ -1,23 +1,23 @@
-// pico SDK stuff
-#include "hardware/flash.h"
-#include "pico/stdlib.h"
-
 // c libs
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
+
+// pico SDK stuff
+#include "hardware/flash.h"
+#include "pico/stdlib.h"
 
 // library I found for JSON parsing and other goodies
 #include <mjson.h>
 
 // stuff for flash
-#define FLASH_TARGET_OFFSET (128 * 1024)
+#define FLASH_TARGET_OFFSET (256 * 1024)
 const uint8_t *flash_target_contents = (const uint8_t *)(XIP_BASE + FLASH_TARGET_OFFSET);
-char *id;
+
+// serial number props
+#define SN_LENGTH 128
 
 // NOTE: defined for RPC engine (provided by mjson)
 static int sender(const char *frame, int frame_len, void *privdata) {
-
     for (size_t i = 0; i < frame_len; i++) {
         uart_putc(uart1, frame[i]);
     }
@@ -29,43 +29,75 @@ static int sender(const char *frame, int frame_len, void *privdata) {
 static void setChassisSerialNumber(struct jsonrpc_request *r) {
     bool success = false;
 
-    // erase our old data here
-    flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
-
     // get our params
-    char temp[64];
-    mjson_get_string(r->params, r->params_len, "$[0]", temp, sizeof(temp));
+    char temp[1024];
+    int result = mjson_get_string(r->params, r->params_len, "$.serialNumber", temp, sizeof(temp));
 
-    uart_puts(uart1, temp);
+    if (result <= SN_LENGTH && result != -1) {
+        // make json to store
+        char jsonFlash[SN_LENGTH + 64];
 
-    flash_range_program(FLASH_TARGET_OFFSET, (const uint8_t *)temp, FLASH_PAGE_SIZE);
+        strcpy(jsonFlash, "{\"serialNumber\":\"");
+        strcat(jsonFlash, temp);
+        strcat(jsonFlash, "\"}");
 
-    id = (char *)flash_target_contents;
+        // erase our old data and store the new data
+        flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
+        flash_range_program(FLASH_TARGET_OFFSET, (const uint8_t *)jsonFlash, FLASH_PAGE_SIZE);
 
-    success = true;
+        success = true;
 
-    // do something
-    jsonrpc_return_success(r, "%s", success ? "true" : "false");
+        // do something
+        jsonrpc_return_success(r, "%s", success ? "true" : "false");
+    } else {
+        jsonrpc_return_error(r, -32602, "Invalid Request", NULL);
+    }
 }
 
 // NOTE: should return our stored serial number
 static void getChassisSerialNumber(struct jsonrpc_request *r) {
-    std::string temp = std::string(id);
-    // just return or string
-    jsonrpc_return_success(r, "%s", ("\"" + temp + "\""));
+    // check the flash store
+    char raw[SN_LENGTH];
+
+    if (-1 != mjson_get_string((char *)flash_target_contents, FLASH_PAGE_SIZE, "$.serialNumber", raw, sizeof(raw))) {
+        // just return or string
+        char formatted[SN_LENGTH + 3];
+
+        strcpy(formatted, "\"");
+        strcat(formatted, raw);
+        strcat(formatted, "\"");
+
+        jsonrpc_return_success(r, "%s", formatted);
+    } else {
+        // return an error
+        jsonrpc_return_error(r, -32603, "Internal Error", NULL);
+    }
 }
 
 // NOTE: the main loop
 int main(void) {
-    // init RPC stuff
-    jsonrpc_init(NULL, NULL);
-    jsonrpc_export("setChassisSerialNumber", setChassisSerialNumber);
-    jsonrpc_export("getChassisSerialNumber", getChassisSerialNumber);
-
     // init UART 1 (not the USB port)
     uart_init(uart1, 115200);
     gpio_set_function(4, GPIO_FUNC_UART);
     gpio_set_function(5, GPIO_FUNC_UART);
+
+    // check the flash store
+    const char *buf;
+    int len;
+
+    if (MJSON_TOK_STRING != mjson_find((char *)flash_target_contents, FLASH_PAGE_SIZE, "$.serialNumber", &buf, &len)) {
+        // write JSON with empty string there
+        flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
+
+        const char *s = "{ \"serialNumber\" : \"\" }"; // {"serialNumber":""}
+
+        flash_range_program(FLASH_TARGET_OFFSET, (const uint8_t *)s, FLASH_PAGE_SIZE);
+    }
+
+    // init RPC stuff
+    jsonrpc_init(NULL, NULL);
+    jsonrpc_export("setChassisSerialNumber", setChassisSerialNumber);
+    jsonrpc_export("getChassisSerialNumber", getChassisSerialNumber);
 
     // basic LED stuff
     gpio_init(PICO_DEFAULT_LED_PIN);

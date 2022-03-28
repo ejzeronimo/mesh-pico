@@ -10,6 +10,7 @@
         "limits": "cpp",
         "*.tcc": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "sstream": "cpp"
     }
 }
