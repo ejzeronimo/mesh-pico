@@ -1,7 +1,3 @@
-// c libs
-#include <stdio.h>
-#include <stdlib.h>
-
 // pico SDK stuff
 #include "hardware/flash.h"
 #include "pico/stdlib.h"
