@@ -1,5 +1,24 @@
 # MeshPico
 A small project designed to be used for development of an IOT embedded device. This makes a Raspberry Pi Pico simulated a Json RPC service that can be connected to over hardware serial 1.
+## Usage
+This project has two RPC functions: **getChassisSerialNumber** and **setChassisSerialNumber**. These functions abide by a global named **SN_LENGTH** which defines the max length of the serial number. 
+
+Any request made to the device must also be less than a 1023 characters delimitter to delimitter (If you hit that what are you even trying to do!).
+### setChassisSerialNumber
+This method allows you to set the serial number of the unit. The serial number must be less than SN_LENGTH. If there was an error (most likely too long of a serial number) then it will return an error message. If for some reason the device has issues with flashing the new serial number then it will return **false**.
+>--> {"jsonrpc": "2.0", "method": "setChassisSerialNumber", "params": {"serialNumber": "8134534d-509c-45ae-b093-49c65c868c5f"}, "id": 1}
+><-- {"jsonrpc": "2.0", "result": true, "id": 1}
+>Failed Flashing:
+><-- {"jsonrpc": "2.0", "result": false, "id": 1}
+>Error Message:
+><--{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid Request"}, "id": "1"}
+### getChassisSerialNumber
+This method returns the stored serial number in the form of a string. The returned id string has a max length of SN_LENGTH. If there was an error with parsing the serial number (some sort of flash error) then it will return an error code
+>Normal Operation:
+>--> {"jsonrpc": "2.0", "method": "getChassisSerialNumber", "params": {}, "id": 2}
+><-- {"jsonrpc": "2.0", "result": "8134534d-509c-45ae-b093-49c65c868c5f", "id": 2}
+>Error Message:
+><--{"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal Error"}, "id": "2"}
 ## Prerequisites
 This was developed in an opensource platform in the [PlatformIO IDE](https://platformio.org/). This IDE can be used standalone or installed as a VS Code extension.
 
@@ -11,7 +30,7 @@ The custom platform can be found [here](https://github.com/Wiz-IO/wizio-pico) an
 ### Setup
 - Open PlatformIO and navigate to the platforms pane
 - Click on the **Advanced Installation** button and paste:
-	> [https://github.com/Wiz-IO/wizio-pico](https://github.com/Wiz-IO/wizio-pico)
+	>[https://github.com/Wiz-IO/wizio-pico](https://github.com/Wiz-IO/wizio-pico)
 - Install the platform
 - After installing the platform clone [this](https://github.com/ejzeronimo/MeshPico) repo into a sandbox folder
 - Open the repo in the IDE and PlatformIO should detect the pio project and populate the build and upload options
