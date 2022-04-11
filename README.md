@@ -6,6 +6,7 @@ This project has two RPC functions: **getChassisSerialNumber** and **setChassisS
 Any request made to the device must also be less than a 1023 characters delimitter to delimitter (If you hit that what are you even trying to do!).
 ### setChassisSerialNumber
 This method allows you to set the serial number of the unit. The serial number must be less than SN_LENGTH. If there was an error (most likely too long of a serial number) then it will return an error message. If for some reason the device has issues with flashing the new serial number then it will return **false**.
+>Normal Operation:\
 >--> {"jsonrpc": "2.0", "method": "setChassisSerialNumber", "params": {"serialNumber": "8134534d-509c-45ae-b093-49c65c868c5f"}, "id": 1}\
 ><-- {"jsonrpc": "2.0", "result": true, "id": 1}\
 >Failed Flashing:\
