@@ -11,14 +11,14 @@ This method allows you to set the serial number of the unit. The serial number m
 >Failed Flashing:\
 ><-- {"jsonrpc": "2.0", "result": false, "id": 1}\
 >Error Message:\
-><--{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid Request"}, "id": "1"}\
+><--{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid Request"}, "id": "1"}
 ### getChassisSerialNumber
 This method returns the stored serial number in the form of a string. The returned id string has a max length of SN_LENGTH. If there was an error with parsing the serial number (some sort of flash error) then it will return an error code
 >Normal Operation:\
 >--> {"jsonrpc": "2.0", "method": "getChassisSerialNumber", "params": {}, "id": 2}\
 ><-- {"jsonrpc": "2.0", "result": "8134534d-509c-45ae-b093-49c65c868c5f", "id": 2}\
 >Error Message:\
-><--{"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal Error"}, "id": "2"}\
+><--{"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal Error"}, "id": "2"}
 ## Prerequisites
 This was developed in an opensource platform in the [PlatformIO IDE](https://platformio.org/). This IDE can be used standalone or installed as a VS Code extension.
 
