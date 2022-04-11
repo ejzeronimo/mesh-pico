@@ -100,7 +100,7 @@ int main(void) {
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
     while (true) {
-        char buf[512];
+        char buf[1024];
         size_t len;
 
         if (uart_is_readable(uart1) > 0) {
