@@ -1,5 +1,5 @@
 # MeshPico
-A small project designed to be used for development of an IOT embedded device. This makes a Raspberry Pi Pico simulated a Json RPC service that can be connected to over hardware serial 1.
+A small project designed to be used for development of an IOT embedded device. This makes a Raspberry Pi Pico simulate a Json RPC service that can be connected to over hardware serial 1.
 ## Usage
 This project has two RPC functions: **getChassisSerialNumber** and **setChassisSerialNumber**. These functions abide by a global named **SN_LENGTH** which defines the max length of the serial number. 
 
